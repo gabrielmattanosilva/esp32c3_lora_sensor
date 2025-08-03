@@ -1,0 +1,25 @@
+#ifndef PINS_H
+#define PINS_H
+
+/* Interface UART */
+#define RS485_TX    21
+#define RS485_RX    20
+
+/* Interface I2C */
+#define I2C_SDA     0
+#define I2C_SCL     1
+
+/* Interface SPI */
+#define SPI_MISO    5
+#define SPI_MOSI    6
+#define SPI_SCK     4
+#define SPI_SS      7
+
+/* Módulo LoRa SX1278 */
+#define SX1278_RST  10
+#define SX1278_DIO0 2
+
+/* ADC - Tensão da Bateria */
+#define BATT_VOLT   3
+
+#endif /* PINS_H */
