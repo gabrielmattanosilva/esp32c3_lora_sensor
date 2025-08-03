@@ -9,13 +9,13 @@
 #define rst   10
 #define dio0  2
 
-#define I2C_SDA 0
-#define I2C_SCL 1
+#define I2C_SDA     0
+#define I2C_SCL     1
+#define RS485_RX    20
+#define RS485_TX    21
+#define BATT_VOLT   3
 
-#define RS485_RX 20
-#define RS485_TX 21
-
-static const char *TAG = "LORA_AHTX0";
+static const char *TAG = "LORA_SENSOR";
 
 Adafruit_AHTX0 aht;
 HardwareSerial modbusSerial(1);
@@ -93,6 +93,18 @@ int16_t readPYR20()
   return modbus_rx();
 }
 
+float readInternalTemp()
+{
+  return temperatureRead();  // já retorna em °C
+}
+
+float readBatteryVoltage()
+{
+  int raw = analogRead(BATT_VOLT);
+  float voltage = (raw / 4095.0) * 3.3;
+  return voltage * 2.0;  // ajuste conforme divisor resistivo (assumido 1:1)
+}
+
 void setup()
 {
   esp_log_level_set("*", ESP_LOG_INFO);
@@ -108,6 +120,8 @@ void setup()
 
   modbusSerial.begin(9600, SERIAL_8N1, RS485_RX, RS485_TX);
   ESP_LOGI(TAG, "Modbus RS485 iniciado.");
+
+  pinMode(BATT_VOLT, INPUT);
 
   ESP_LOGI(TAG, "Inicializando LoRa...");
   LoRa.setPins(ss, rst, dio0);
@@ -137,6 +151,8 @@ void loop()
     sensors_event_t humidity, temp;
     aht.getEvent(&humidity, &temp);
     int16_t irradiance = readPYR20();
+    float internalTemp = readInternalTemp();
+    float battVoltage  = readBatteryVoltage();
 
     bool temp_ok = !isnan(temp.temperature);
     bool hum_ok  = !isnan(humidity.relative_humidity);
@@ -146,7 +162,10 @@ void loop()
     {
       String message = "Temp: " + String(temp.temperature, 2) + " C, " +
                        "Umid: " + String(humidity.relative_humidity, 1) + " %, " +
-                       "Irr: " + String(irradiance) + " W/m2";
+                       "Irr: " + String(irradiance) + " W/m2, " +
+                       "TempESP: " + String(internalTemp, 1) + " C, " +
+                       "Bat: " + String(battVoltage, 2) + " V";
+
       ESP_LOGI(TAG, "Enviando: %s", message.c_str());
       LoRa.beginPacket();
       LoRa.print(message);
@@ -163,4 +182,3 @@ void loop()
 
   delay(10);
 }
-
