@@ -2,7 +2,7 @@ import serial
 import time
 import struct
 
-PORT = 'COM12'       # Porta do conversor USB-RS485
+PORT = 'COM13'       # Porta do conversor USB-RS485
 BAUDRATE = 9600
 
 irradiance = 0  # começa em 0
