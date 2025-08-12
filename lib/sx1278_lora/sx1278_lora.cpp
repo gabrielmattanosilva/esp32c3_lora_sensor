@@ -3,6 +3,7 @@
 #include <SPI.h>
 #include <LoRa.h>
 #include "pins.h"
+#include "utils.h"
 
 bool lora_begin(void)
 {
@@ -20,15 +21,24 @@ bool lora_begin(void)
     return true;
 }
 
-bool lora_send_string(const String *msg)
-{
-    LoRa.beginPacket();
-    LoRa.print(*msg);
-    uint8_t rc = LoRa.endPacket();
-    return (rc == 1) ? true : false;
-}
-
 void lora_sleep(void)
 {
     LoRa.sleep();
+}
+
+void lora_send_packet(uint16_t irradiance_wm2,
+                      uint16_t batt_mv,
+                      int16_t temp_c10,
+                      uint32_t timestamp_s)
+{
+    PayloadPacked p;
+    p.irradiance = irradiance_wm2;
+    p.battery_voltage = batt_mv;
+    p.internal_temperature = temp_c10;
+    p.timestamp = timestamp_s;
+    p.checksum = utils_checksum8((const uint8_t *)&p, sizeof(PayloadPacked) - 1);
+
+    LoRa.beginPacket();
+    LoRa.write((const uint8_t *)&p, sizeof(PayloadPacked));
+    (void)LoRa.endPacket();
 }

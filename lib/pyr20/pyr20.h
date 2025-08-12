@@ -4,6 +4,6 @@
 #include <stdint.h>
 
 void pyr20_begin(void);
-int16_t pyr20_read(void);
+uint16_t pyr20_read(void);
 
 #endif /* PYR20_H */

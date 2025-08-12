@@ -7,9 +7,11 @@
 uint16_t utils_check_crc(const uint8_t *data, uint8_t length)
 {
     uint16_t crc = 0xFFFF;
+
     for (uint8_t i = 0; i < length; i++)
     {
         crc ^= data[i];
+
         for (uint8_t j = 0; j < 8; j++)
         {
             if (crc & 0x0001)
@@ -23,23 +25,56 @@ uint16_t utils_check_crc(const uint8_t *data, uint8_t length)
             }
         }
     }
+
     return crc;
 }
 
-float utils_read_internal_temp(void)
+int16_t utils_internal_temp_c10(void)
 {
-    return temperatureRead();
+    float tc = temperatureRead();
+    int32_t c10 = (int32_t)(tc * 10.0f);
+
+    if (c10 < -32768)
+    {
+        c10 = -32768;
+    }
+
+    if (c10 > 32767)
+    {
+        c10 = 32767;
+    }
+
+    return (int16_t)c10;
 }
 
-void utils_read_battery_voltage_begin(void)
+void utils_battery_voltage_begin(void)
 {
     pinMode(BATT_VOLT, INPUT);
     analogSetPinAttenuation(BATT_VOLT, ADC_11db);
 }
 
-float utils_read_battery_voltage(void)
+uint16_t utils_battery_voltage_mv(void)
 {
     uint16_t raw = analogRead(BATT_VOLT);
     float v_adc = (raw / 4095.0f) * 3.3f;
-    return v_adc * BATT_VOLT_DIV_FACTOR;
+    uint32_t mv = (uint32_t)(v_adc * BATT_VOLT_DIV_FACTOR * 1000.0f + 0.5f);
+
+    if (mv > 65535u)
+    {
+        mv = 65535u;
+    }
+
+    return (uint16_t)mv;
+}
+
+uint8_t utils_checksum8(const uint8_t *data, uint32_t len)
+{
+    uint8_t s = 0;
+
+    for (uint32_t i = 0; i < len; ++i)
+    {
+        s += data[i];
+    }
+
+    return s;
 }

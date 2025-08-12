@@ -24,22 +24,20 @@ static void pyr20_modbus_tx(void)
     delay(10);
 }
 
-static int16_t pyr20_modbus_rx(void)
+static uint16_t pyr20_modbus_rx(void)
 {
     uint8_t response[7];
     uint8_t i = 0;
-    unsigned long startTime = millis();
+    uint32_t t0 = millis();
 
-    while (i < 7 && (millis() - startTime) < 100)
+    while (i < 7 && (millis() - t0) < 100)
     {
-        if (modbusSerial.available())
-        {
-            response[i++] = modbusSerial.read();
-        }
+        if (modbusSerial.available()) response[i++] = modbusSerial.read();
     }
+
     if (i < 7)
     {
-        return -1;
+        return 0xFFFFu;
     }
 
     uint16_t crc_resp = (uint16_t)((response[6] << 8) | response[5]);
@@ -47,13 +45,14 @@ static int16_t pyr20_modbus_rx(void)
 
     if (crc_resp != crc_calc)
     {
-        return -1;
+        return 0xFFFFu;
     }
 
-    return (int16_t)((response[3] << 8) | response[4]);
+    uint16_t val = (uint16_t)((response[3] << 8) | response[4]);
+    return val;
 }
 
-int16_t pyr20_read(void)
+uint16_t pyr20_read(void)
 {
     pyr20_modbus_tx();
     return pyr20_modbus_rx();

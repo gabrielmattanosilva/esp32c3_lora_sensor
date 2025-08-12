@@ -4,8 +4,9 @@
 #include <stdint.h>
 
 uint16_t utils_check_crc(const uint8_t *data, uint8_t length);
-float utils_read_internal_temp(void);
-void utils_read_battery_voltage_begin(void);
-float utils_read_battery_voltage(void);
+int16_t  utils_internal_temp_c10(void);
+void utils_battery_voltage_begin(void);
+uint16_t utils_battery_voltage_mv(void);
+uint8_t  utils_checksum8(const uint8_t *data, uint32_t len);
 
 #endif /* UTILS_H */
