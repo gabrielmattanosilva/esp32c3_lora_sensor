@@ -18,7 +18,4 @@
 /* ADC - Tensão da Bateria */
 #define BATT_VOLT       3
 
-/* Modo de energia dos periféricos*/
-#define PER_PWR_CTRL    8
-
 #endif /* PINS_H */
