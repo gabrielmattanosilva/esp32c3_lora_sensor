@@ -4,6 +4,8 @@
 #include <LoRa.h>
 #include "pins.h"
 #include "utils.h"
+#include "crypto.h"
+#include "credentials.h"
 
 bool lora_begin(void)
 {
@@ -18,6 +20,8 @@ bool lora_begin(void)
     }
 
     LoRa.setSyncWord(0xA5);
+
+    crypto_init(AES_KEY);
     return true;
 }
 
@@ -28,17 +32,25 @@ void lora_sleep(void)
 
 void lora_send_packet(uint16_t irradiance_wm2,
                       uint16_t batt_mv,
-                      int16_t temp_c10,
+                      int16_t  temp_c10,
                       uint32_t timestamp_s)
 {
     PayloadPacked p;
-    p.irradiance = irradiance_wm2;
-    p.battery_voltage = batt_mv;
-    p.internal_temperature = temp_c10;
-    p.timestamp = timestamp_s;
-    p.checksum = utils_checksum8((const uint8_t *)&p, sizeof(PayloadPacked) - 1);
+    p.irradiance            = irradiance_wm2;
+    p.battery_voltage       = batt_mv;
+    p.internal_temperature  = temp_c10;
+    p.timestamp             = timestamp_s;
+    p.checksum              = utils_checksum8((const uint8_t *)&p, sizeof(PayloadPacked) - 1);
+
+    uint8_t iv[CRYPTO_BLOCK_SIZE];
+    crypto_random_iv(iv);
+
+    uint8_t ct[CRYPTO_BLOCK_SIZE];
+    size_t  ct_len = 0;
+    (void)crypto_encrypt_cbc((const uint8_t *)&p, sizeof(PayloadPacked), iv, ct, &ct_len);
 
     LoRa.beginPacket();
-    LoRa.write((const uint8_t *)&p, sizeof(PayloadPacked));
+    LoRa.write(iv, CRYPTO_BLOCK_SIZE);
+    LoRa.write(ct, ct_len);
     (void)LoRa.endPacket();
 }

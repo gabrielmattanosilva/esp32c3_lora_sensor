@@ -4,3 +4,4 @@
 .vscode/launch.json
 .vscode/ipch
 esp32c3_lora_sensor.txt
+include/credentials.h
