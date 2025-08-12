@@ -1,3 +1,8 @@
+/**
+ * @file crypto.h
+ * @brief Cabeçalho para as funções de criptografia AES-CBC.
+ */
+
 #ifndef CRYPTO_H
 #define CRYPTO_H
 

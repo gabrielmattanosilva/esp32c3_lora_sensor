@@ -1,3 +1,8 @@
+/**
+ * @file sx1278_lora.cpp
+ * @brief Implementação das funções para comunicação LoRa com o módulo SX1278.
+ */
+
 #include "sx1278_lora.h"
 #include <Arduino.h>
 #include <SPI.h>
@@ -7,6 +12,10 @@
 #include "crypto.h"
 #include "credentials.h"
 
+/**
+ * @brief Inicializa o módulo LoRa.
+ * @return Verdadeiro se a inicialização foi bem-sucedida, falso caso contrário.
+ */
 bool lora_begin(void)
 {
     pinMode(SPI_SS, OUTPUT);
@@ -25,11 +34,21 @@ bool lora_begin(void)
     return true;
 }
 
+/**
+ * @brief Coloca o módulo LoRa em modo de baixo consumo.
+ */
 void lora_sleep(void)
 {
     LoRa.sleep();
 }
 
+/**
+ * @brief Envia um pacote de dados via LoRa.
+ * @param irradiance_wm2 Valor de irradiância em W/m^2.
+ * @param batt_mv Tensão da bateria em mV.
+ * @param temp_c10 Temperatura interna em °C*10.
+ * @param timestamp_s Timestamp em segundos.
+ */
 void lora_send_packet(uint16_t irradiance_wm2,
                       uint16_t batt_mv,
                       int16_t  temp_c10,

@@ -1,3 +1,8 @@
+/**
+ * @file pyr20.h
+ * @brief Cabeçalho para as funções de comunicação com o sensor PYR20.
+ */
+
 #ifndef PYR20_H
 #define PYR20_H
 

@@ -1,9 +1,20 @@
+/**
+ * @file utils.cpp
+ * @brief Implementação de funções utilitárias.
+ */
+
 #include "utils.h"
 #include <Arduino.h>
 #include "pins.h"
 
 #define BATT_VOLT_DIV_FACTOR 1.75f
 
+/**
+ * @brief Calcula o CRC16 para os dados fornecidos.
+ * @param data Ponteiro para os dados.
+ * @param length Tamanho dos dados.
+ * @return Valor do CRC16 calculado.
+ */
 uint16_t utils_check_crc(const uint8_t *data, uint8_t length)
 {
     uint16_t crc = 0xFFFF;
@@ -29,6 +40,10 @@ uint16_t utils_check_crc(const uint8_t *data, uint8_t length)
     return crc;
 }
 
+/**
+ * @brief Lê a temperatura interna do ESP32-C3.
+ * @return Temperatura em °C*10.
+ */
 int16_t utils_internal_temp_c10(void)
 {
     float tc = temperatureRead();
@@ -47,12 +62,19 @@ int16_t utils_internal_temp_c10(void)
     return (int16_t)c10;
 }
 
+/**
+ * @brief Configura o pino para leitura da tensão da bateria.
+ */
 void utils_battery_voltage_begin(void)
 {
     pinMode(BATT_VOLT, INPUT);
     analogSetPinAttenuation(BATT_VOLT, ADC_11db);
 }
 
+/**
+ * @brief Lê a tensão da bateria.
+ * @return Tensão da bateria em mV.
+ */
 uint16_t utils_battery_voltage_mv(void)
 {
     uint16_t raw = analogRead(BATT_VOLT);
@@ -67,6 +89,12 @@ uint16_t utils_battery_voltage_mv(void)
     return (uint16_t)mv;
 }
 
+/**
+ * @brief Calcula uma soma de verificação 8-bit para os dados fornecidos.
+ * @param data Ponteiro para os dados.
+ * @param len Tamanho dos dados.
+ * @return Soma de verificação 8-bit.
+ */
 uint8_t utils_checksum8(const uint8_t *data, uint32_t len)
 {
     uint8_t s = 0;

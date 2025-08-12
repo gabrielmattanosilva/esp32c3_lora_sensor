@@ -1,3 +1,8 @@
+/**
+ * @file main.cpp
+ * @brief Programa principal do dispositivo de monitoramento de irradiação solar com LoRa.
+ */
+
 #include <Arduino.h>
 #include <esp_log.h>
 #include <esp_timer.h>
@@ -17,19 +22,26 @@ RTC_DATA_ATTR uint64_t rtc_total_us = 0;
 RTC_DATA_ATTR uint32_t rtc_boot_count = 0;
 RTC_DATA_ATTR uint64_t rtc_last_sleep_us = 0;
 
-static void hw_error_restart_lora(const char *msg, int code)
+/**
+ * @brief Reinicia o dispositivo após um erro crítico.
+ */
+static void hw_error_restart_lora()
 {
     esp_log_level_set("*", ESP_LOG_ERROR);
 
     for (uint8_t i = 0; i < 6; i++)
     {
-        ESP_LOGE("HW", "%s (code=%d)", msg, code);
+        ESP_LOGE("HW", "Falha ao iniciar o módulo LoRa (SX1278)!");
         delay(10000);
     }
 
     esp_restart();
 }
 
+/**
+ * @brief Coloca o dispositivo em modo de deep sleep.
+ * @param sleep_us Tempo de sleep em microssegundos.
+ */
 static void go_to_deep_sleep(uint64_t sleep_us)
 {
     if (sleep_us < 1000ULL)
@@ -44,6 +56,9 @@ static void go_to_deep_sleep(uint64_t sleep_us)
     esp_deep_sleep_start();
 }
 
+/**
+ * @brief Função de inicialização.
+ */
 void setup()
 {
     if (rtc_boot_count > 0)
@@ -60,7 +75,7 @@ void setup()
 
     if (!lora_begin())
     {
-        hw_error_restart_lora("Falha ao iniciar o módulo LoRa (SX1278)", -1);
+        hw_error_restart_lora();
     }
 
     const uint16_t irr = pyr20_read();
@@ -77,6 +92,11 @@ void setup()
     go_to_deep_sleep(sleep_us);
 }
 
+/**
+ * @brief Função principal de loop (não utilizada neste projeto).
+ * @details O dispositivo entra em deep sleep no setup() após enviar
+ *          os dados, portanto, o loop() nunca é executado.
+ */
 void loop()
 {
 }

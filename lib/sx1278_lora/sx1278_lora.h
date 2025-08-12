@@ -1,3 +1,8 @@
+/**
+ * @file sx1278_lora.h
+ * @brief Cabeçalho para as funções de comunicação LoRa com o módulo SX1278.
+ */
+
 #ifndef SX1278_LORA_H
 #define SX1278_LORA_H
 
@@ -5,6 +10,9 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+/**
+ * @brief Estrutura para o payload compactado enviado via LoRa.
+ */
 typedef struct __attribute__((packed)) {
     uint16_t irradiance;           /* W/m² (0..2000, 0xFFFF = erro)        */
     uint16_t battery_voltage;      /* mV                                   */
