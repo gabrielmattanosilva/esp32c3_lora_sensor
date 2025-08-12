@@ -1,21 +1,26 @@
+#include "pyr20.h"
 #include <Arduino.h>
 #include <HardwareSerial.h>
 #include "pins.h"
-#include "pyr20.h"
 #include "utils.h"
 
-HardwareSerial rs485Serial(1);
+HardwareSerial modbusSerial(1);
+
+void pyr20_begin()
+{
+    modbusSerial.begin(9600, SERIAL_8N1, RS485_RX, RS485_TX);
+}
 
 static void pyr20_modbus_tx(void)
 {
     static const uint8_t request[] = {0x01, 0x04, 0x00, 0x00, 0x00, 0x01, 0x31, 0xCA};
 
-    while (rs485Serial.available())
+    while (modbusSerial.available())
     {
-        (void)rs485Serial.read();
+        (void)modbusSerial.read();
     }
 
-    rs485Serial.write(request, sizeof(request));
+    modbusSerial.write(request, sizeof(request));
     delay(10);
 }
 
@@ -27,8 +32,10 @@ static int16_t pyr20_modbus_rx(void)
 
     while (i < 7 && (millis() - startTime) < 100)
     {
-        if (rs485Serial.available())
-            response[i++] = rs485Serial.read();
+        if (modbusSerial.available())
+        {
+            response[i++] = modbusSerial.read();
+        }
     }
     if (i < 7)
     {
@@ -44,11 +51,6 @@ static int16_t pyr20_modbus_rx(void)
     }
 
     return (int16_t)((response[3] << 8) | response[4]);
-}
-
-void pyr20_begin()
-{
-    rs485Serial.begin(9600, SERIAL_8N1, RS485_RX, RS485_TX);
 }
 
 int16_t pyr20_read(void)
