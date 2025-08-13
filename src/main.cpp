@@ -9,7 +9,6 @@
 #include <esp_sleep.h>
 #include <esp_system.h>
 #include <LoRa.h>
-
 #include "pins.h"
 #include "utils.h"
 #include "pyr20.h"
