@@ -1,6 +1,6 @@
 /**
  * @file crypto.cpp
- * @brief Implementação das funções de criptografia AES-CBC.
+ * @brief Implementação das funções de criptografia AES-128-CBC.
  */
 
 #include "crypto.h"
@@ -39,7 +39,7 @@ void crypto_random_iv(uint8_t iv[CRYPTO_BLOCK_SIZE])
  * @param out Buffer para os dados com padding.
  * @return Tamanho dos dados após o padding.
  */
-static inline size_t pkcs7_pad(const uint8_t *in, size_t in_len, uint8_t *out)
+static inline size_t crypto_pkcs7_pad(const uint8_t *in, size_t in_len, uint8_t *out)
 {
     const uint8_t pad = (uint8_t)(CRYPTO_BLOCK_SIZE - (in_len % CRYPTO_BLOCK_SIZE ? (in_len % CRYPTO_BLOCK_SIZE) : CRYPTO_BLOCK_SIZE));
     const size_t out_len = in_len + pad;
@@ -49,40 +49,7 @@ static inline size_t pkcs7_pad(const uint8_t *in, size_t in_len, uint8_t *out)
 }
 
 /**
- * @brief Remove padding PKCS#7 dos dados de entrada.
- * @param buf Dados com padding.
- * @param in_len Tamanho dos dados com padding.
- * @param out_len Ponteiro para armazenar o tamanho dos dados sem padding.
- * @return Verdadeiro se o padding foi removido com sucesso, falso caso contrário.
- */
-static inline bool pkcs7_unpad(uint8_t *buf, size_t in_len, size_t *out_len)
-{
-    if (in_len == 0 || (in_len % CRYPTO_BLOCK_SIZE) != 0)
-    {
-        return false;
-    }
-
-    uint8_t pad = buf[in_len - 1];
-
-    if (pad == 0 || pad > CRYPTO_BLOCK_SIZE)
-    {
-        return false;
-    }
-
-    for (size_t i = 0; i < pad; ++i)
-    {
-        if (buf[in_len - 1 - i] != pad)
-        {
-            return false;
-        }
-    }
-
-    *out_len = in_len - pad;
-    return true;
-}
-
-/**
- * @brief Criptografa dados usando AES-CBC.
+ * @brief Criptografa dados usando AES-128-CBC.
  * @param in Dados de entrada.
  * @param in_len Tamanho dos dados de entrada.
  * @param iv Vetor de inicialização.
@@ -90,11 +57,11 @@ static inline bool pkcs7_unpad(uint8_t *buf, size_t in_len, size_t *out_len)
  * @param out_len Ponteiro para armazenar o tamanho dos dados criptografados.
  * @return Verdadeiro se a criptografia foi bem-sucedida, falso caso contrário.
  */
-bool crypto_encrypt_cbc(const uint8_t *in, size_t in_len,
+bool crypto_encrypt(const uint8_t *in, size_t in_len,
                         const uint8_t iv[CRYPTO_BLOCK_SIZE],
                         uint8_t *out, size_t *out_len)
 {
-    const size_t padded_len = pkcs7_pad(in, in_len, out);
+    const size_t padded_len = crypto_pkcs7_pad(in, in_len, out);
 
     mbedtls_aes_context ctx;
     mbedtls_aes_init(&ctx);
@@ -118,45 +85,4 @@ bool crypto_encrypt_cbc(const uint8_t *in, size_t in_len,
 
     *out_len = padded_len;
     return true;
-}
-
-/**
- * @brief Descriptografa dados usando AES-CBC.
- * @param in Dados criptografados.
- * @param in_len Tamanho dos dados criptografados.
- * @param iv Vetor de inicialização.
- * @param out Buffer para os dados descriptografados.
- * @param out_len Ponteiro para armazenar o tamanho dos dados descriptografados.
- * @return Verdadeiro se a descriptografia foi bem-sucedida, falso caso contrário.
- */
-bool crypto_decrypt_cbc(const uint8_t *in, size_t in_len,
-                        const uint8_t iv[CRYPTO_BLOCK_SIZE],
-                        uint8_t *out, size_t *out_len)
-{
-    if ((in_len % CRYPTO_BLOCK_SIZE) != 0)
-    {
-        return false;
-    }
-
-    mbedtls_aes_context ctx;
-    mbedtls_aes_init(&ctx);
-
-    if (mbedtls_aes_setkey_dec(&ctx, g_key, 128) != 0)
-    {
-        mbedtls_aes_free(&ctx);
-        return false;
-    }
-
-    uint8_t iv_copy[CRYPTO_BLOCK_SIZE];
-    memcpy(iv_copy, iv, CRYPTO_BLOCK_SIZE);
-
-    int rc = mbedtls_aes_crypt_cbc(&ctx, MBEDTLS_AES_DECRYPT, in_len, iv_copy, in, out);
-    mbedtls_aes_free(&ctx);
-
-    if (rc != 0)
-    {
-        return false;
-    }
-
-    return pkcs7_unpad(out, in_len, out_len);
 }

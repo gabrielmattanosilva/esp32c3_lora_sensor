@@ -66,7 +66,7 @@ void lora_send_packet(uint16_t irradiance_wm2,
 
     uint8_t ct[CRYPTO_BLOCK_SIZE];
     size_t  ct_len = 0;
-    (void)crypto_encrypt_cbc((const uint8_t *)&p, sizeof(PayloadPacked), iv, ct, &ct_len);
+    (void)crypto_encrypt((const uint8_t *)&p, sizeof(PayloadPacked), iv, ct, &ct_len);
 
     LoRa.beginPacket();
     LoRa.write(iv, CRYPTO_BLOCK_SIZE);
