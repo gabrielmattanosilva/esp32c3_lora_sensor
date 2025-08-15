@@ -9,6 +9,8 @@
 
 #define BATT_VOLT_DIV_FACTOR 1.75f
 
+/****************************** Funções públicas ******************************/
+
 /**
  * @brief Calcula o CRC16 para os dados fornecidos.
  * @param data Ponteiro para os dados.

@@ -12,6 +12,8 @@
 #include "crypto.h"
 #include "credentials.h"
 
+/****************************** Funções públicas ******************************/
+
 /**
  * @brief Inicializa o módulo LoRa.
  * @return Verdadeiro se a inicialização foi bem-sucedida, falso caso contrário.

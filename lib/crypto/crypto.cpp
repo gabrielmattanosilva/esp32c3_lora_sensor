@@ -10,6 +10,28 @@
 
 static uint8_t g_key[CRYPTO_KEY_SIZE];
 
+/****************************** Funções privadas ******************************/
+
+/**
+ * @brief Aplica padding PKCS#7 aos dados de entrada.
+ * @param in Dados de entrada.
+ * @param in_len Tamanho dos dados de entrada.
+ * @param out Buffer para os dados com padding.
+ * @return Tamanho dos dados após o padding.
+ */
+static inline size_t pkcs7_pad(const uint8_t *in, size_t in_len, uint8_t *out)
+{
+    const uint8_t pad = (uint8_t)(CRYPTO_BLOCK_SIZE -
+                                  (in_len % CRYPTO_BLOCK_SIZE ? (in_len % CRYPTO_BLOCK_SIZE)
+                                                              : CRYPTO_BLOCK_SIZE));
+    const size_t out_len = in_len + pad;
+    memcpy(out, in, in_len);
+    memset(out + in_len, pad, pad);
+    return out_len;
+}
+
+/****************************** Funções públicas ******************************/
+
 /**
  * @brief Inicializa o módulo de criptografia com a chave fornecida.
  * @param key16 Ponteiro para a chave AES de 16 bytes.
@@ -33,22 +55,6 @@ void crypto_random_iv(uint8_t iv[CRYPTO_BLOCK_SIZE])
 }
 
 /**
- * @brief Aplica padding PKCS#7 aos dados de entrada.
- * @param in Dados de entrada.
- * @param in_len Tamanho dos dados de entrada.
- * @param out Buffer para os dados com padding.
- * @return Tamanho dos dados após o padding.
- */
-static inline size_t crypto_pkcs7_pad(const uint8_t *in, size_t in_len, uint8_t *out)
-{
-    const uint8_t pad = (uint8_t)(CRYPTO_BLOCK_SIZE - (in_len % CRYPTO_BLOCK_SIZE ? (in_len % CRYPTO_BLOCK_SIZE) : CRYPTO_BLOCK_SIZE));
-    const size_t out_len = in_len + pad;
-    memcpy(out, in, in_len);
-    memset(out + in_len, pad, pad);
-    return out_len;
-}
-
-/**
  * @brief Criptografa dados usando AES-128-CBC.
  * @param in Dados de entrada.
  * @param in_len Tamanho dos dados de entrada.
@@ -58,10 +64,10 @@ static inline size_t crypto_pkcs7_pad(const uint8_t *in, size_t in_len, uint8_t 
  * @return Verdadeiro se a criptografia foi bem-sucedida, falso caso contrário.
  */
 bool crypto_encrypt(const uint8_t *in, size_t in_len,
-                        const uint8_t iv[CRYPTO_BLOCK_SIZE],
-                        uint8_t *out, size_t *out_len)
+                    const uint8_t iv[CRYPTO_BLOCK_SIZE],
+                    uint8_t *out, size_t *out_len)
 {
-    const size_t padded_len = crypto_pkcs7_pad(in, in_len, out);
+    const size_t padded_len = pkcs7_pad(in, in_len, out);
 
     mbedtls_aes_context ctx;
     mbedtls_aes_init(&ctx);

@@ -11,18 +11,12 @@
 
 HardwareSerial modbusSerial(1);
 
-/**
- * @brief Inicializa a comunicação com o piranômetro PYR20.
- */
-void pyr20_begin()
-{
-    modbusSerial.begin(9600, SERIAL_8N1, RS485_RX, RS485_TX);
-}
+/****************************** Funções privadas ******************************/
 
 /**
  * @brief Envia uma requisição Modbus para o piranômetro PYR20.
  */
-static void pyr20_modbus_tx(void)
+static void modbus_tx(void)
 {
     static const uint8_t request[] = {0x01, 0x04, 0x00, 0x00, 0x00, 0x01, 0x31, 0xCA};
 
@@ -39,7 +33,7 @@ static void pyr20_modbus_tx(void)
  * @brief Recebe e processa a resposta do piranômetro PYR20.
  * @return Valor lido do piranômetro ou 0xFFFF em caso de erro.
  */
-static uint16_t pyr20_modbus_rx(void)
+static uint16_t modbus_rx(void)
 {
     uint8_t response[7];
     uint8_t i = 0;
@@ -47,7 +41,8 @@ static uint16_t pyr20_modbus_rx(void)
 
     while (i < 7 && (millis() - t0) < 100)
     {
-        if (modbusSerial.available()) response[i++] = modbusSerial.read();
+        if (modbusSerial.available())
+            response[i++] = modbusSerial.read();
     }
 
     if (i < 7)
@@ -67,12 +62,22 @@ static uint16_t pyr20_modbus_rx(void)
     return val;
 }
 
+/****************************** Funções públicas ******************************/
+
+/**
+ * @brief Inicializa a comunicação com o piranômetro PYR20.
+ */
+void pyr20_begin()
+{
+    modbusSerial.begin(9600, SERIAL_8N1, RS485_RX, RS485_TX);
+}
+
 /**
  * @brief Lê o valor de irradiância do piranômetro PYR20.
  * @return Valor de irradiância em W/m^2 ou 0xFFFF em caso de erro.
  */
 uint16_t pyr20_read(void)
 {
-    pyr20_modbus_tx();
-    return pyr20_modbus_rx();
+    modbus_tx();
+    return modbus_rx();
 }
